@@ -23,9 +23,9 @@ export const router = createBrowserRouter([
         element: <IncidentsPage />,
       },
       {
-  path: '*',
-  element: <NotFoundPage />,
-},
+        path: '*',
+        element: <NotFoundPage />,
+      },
     ],
   },
 ])
