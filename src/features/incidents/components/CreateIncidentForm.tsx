@@ -1,14 +1,16 @@
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+
 import { Button } from '@/components/ui/button'
 
-import type { Severity } from '../types/incident'
-
-import { useState, type FormEvent } from 'react'
+import { createIncidentSchema, type CreateIncidentFormData } from '../schemas/incidentSchema'
 
 type CreateIncidentFormProps = {
   onSubmit: (data: {
     title: string
     description: string
-    severity: Exclude<Severity, 'all'>
+    severity: CreateIncidentFormData['severity']
+
     status: string
   }) => Promise<unknown>
   onReset: () => void
@@ -24,33 +26,42 @@ function CreateIncidentForm({
   isSuccess,
   errorMessage,
 }: CreateIncidentFormProps) {
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [severity, setSeverity] = useState<Exclude<Severity, 'all'>>('warning')
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<CreateIncidentFormData>({
+    resolver: zodResolver(createIncidentSchema),
+    defaultValues: {
+      title: '',
+      description: '',
+      Sample: '',
+      severity: 'warning',
+    },
+  })
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-
+  const handleFormSubmit = async (data: CreateIncidentFormData) => {
     onReset()
 
     try {
       await onSubmit({
-        title,
-        description,
-        severity,
+        ...data,
         status: 'Active',
       })
 
-      setTitle('')
-      setDescription('')
-      setSeverity('warning')
+      reset()
     } catch {
       // Error state is handled by the parent mutation state.
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border bg-card p-4">
+    <form
+      onSubmit={handleSubmit(handleFormSubmit)}
+      className="space-y-4 rounded-lg border bg-card p-4"
+    >
+      {/* Title */}
       <div className="space-y-2">
         <label htmlFor="incident-title" className="text-sm font-medium">
           Title
@@ -58,14 +69,15 @@ function CreateIncidentForm({
 
         <input
           id="incident-title"
-          value={title}
-          onChange={(event) => setTitle(event.target.value)}
+          {...register('title')}
           placeholder="Enter incident title"
-          required
           className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
         />
+
+        {errors.title && <p className="text-sm text-destructive">{errors.title.message}</p>}
       </div>
 
+      {/* Description */}
       <div className="space-y-2">
         <label htmlFor="incident-description" className="text-sm font-medium">
           Description
@@ -73,14 +85,33 @@ function CreateIncidentForm({
 
         <textarea
           id="incident-description"
-          value={description}
-          onChange={(event) => setDescription(event.target.value)}
+          {...register('description')}
           placeholder="Describe the incident"
-          required
           className="min-h-24 w-full rounded-md border bg-background p-3 text-sm outline-none focus:ring-2 focus:ring-ring"
         />
+
+        {errors.description && (
+          <p className="text-sm text-destructive">{errors.description.message}</p>
+        )}
       </div>
 
+      {/* Sample */}
+      <div className="space-y-2">
+        <label htmlFor="incident-sample" className="text-sm font-medium">
+          Sample
+        </label>
+
+        <textarea
+          id="incident-sample"
+          {...register('Sample')}
+          placeholder="Enter sample"
+          className="min-h-24 w-full rounded-md border bg-background p-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+        />
+
+        {errors.Sample && <p className="text-sm text-destructive">{errors.Sample.message}</p>}
+      </div>
+
+      {/* Severity */}
       <div className="space-y-2">
         <label htmlFor="incident-severity" className="text-sm font-medium">
           Severity
@@ -88,22 +119,26 @@ function CreateIncidentForm({
 
         <select
           id="incident-severity"
-          value={severity}
-          onChange={(event) => setSeverity(event.target.value as Exclude<Severity, 'all'>)}
+          {...register('severity')}
           className="h-10 w-full rounded-md border bg-background px-3 text-sm"
         >
           <option value="critical">Critical</option>
           <option value="warning">Warning</option>
           <option value="info">Info</option>
         </select>
+
+        {errors.severity && <p className="text-sm text-destructive">{errors.severity.message}</p>}
       </div>
 
+      {/* Submit */}
       <Button type="submit" disabled={isSubmitting}>
         {isSubmitting ? 'Creating...' : 'Create Incident'}
       </Button>
 
+      {/* Success */}
       {isSuccess && <p className="text-sm text-green-600">Incident created successfully.</p>}
 
+      {/* API Error */}
       {errorMessage && <p className="text-sm text-destructive">{errorMessage}</p>}
     </form>
   )

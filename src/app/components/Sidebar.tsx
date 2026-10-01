@@ -1,25 +1,27 @@
 import { NavLink } from 'react-router'
+import { useSidebarStore } from '../store/sidebarStore'
 
-type SidebarProps = {
-  isOpen: boolean
-  onNavigate: () => void
-}
+function Sidebar() {
+  const isOpen = useSidebarStore((state) => state.isOpen)
 
-function Sidebar({ isOpen, onNavigate }: SidebarProps) {
+  const close = useSidebarStore((state) => state.close)
+
   return (
     <>
       {isOpen && (
         <button
           type="button"
           aria-label="Close navigation"
-          onClick={onNavigate}
+          onClick={close}
           className="fixed inset-0 z-40 bg-black/30 md:hidden"
         />
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-60 border-r bg-white pt-16 transition-transform duration-200 md:static md:z-auto md:translate-x-0 md:pt-0 ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
+        className={`fixed inset-y-0 left-0 z-50 w-60 border-r bg-white pt-16 transition-[transform,width] duration-200 md:static md:z-auto md:pt-0 ${
+          isOpen
+            ? 'translate-x-0 md:w-60'
+            : '-translate-x-full md:w-0 md:overflow-hidden md:border-r-0'
         }`}
       >
         <nav className="p-3" aria-label="Main navigation">
@@ -27,10 +29,12 @@ function Sidebar({ isOpen, onNavigate }: SidebarProps) {
             <li>
               <NavLink
                 to="/"
-                onClick={onNavigate}
+                // onClick={close}
                 className={({ isActive }) =>
                   `block rounded-md px-3 py-2 text-sm font-medium ${
-                    isActive ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100'
+                    isActive
+                      ? 'bg-slate-900 text-white'
+                      : 'text-slate-700 hover:bg-slate-100'
                   }`
                 }
               >
@@ -41,10 +45,12 @@ function Sidebar({ isOpen, onNavigate }: SidebarProps) {
             <li>
               <NavLink
                 to="/services"
-                onClick={onNavigate}
+                // onClick={close}
                 className={({ isActive }) =>
                   `block rounded-md px-3 py-2 text-sm font-medium ${
-                    isActive ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100'
+                    isActive
+                      ? 'bg-slate-900 text-white'
+                      : 'text-slate-700 hover:bg-slate-100'
                   }`
                 }
               >
@@ -55,10 +61,12 @@ function Sidebar({ isOpen, onNavigate }: SidebarProps) {
             <li>
               <NavLink
                 to="/incidents"
-                onClick={onNavigate}
+                // onClick={close}
                 className={({ isActive }) =>
                   `block rounded-md px-3 py-2 text-sm font-medium ${
-                    isActive ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100'
+                    isActive
+                      ? 'bg-slate-900 text-white'
+                      : 'text-slate-700 hover:bg-slate-100'
                   }`
                 }
               >

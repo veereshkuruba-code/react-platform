@@ -1,55 +1,42 @@
 import { useRef, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+
+import { useCreateIncident } from './hooks/useCreateIncident'
+import { useIncidents } from './hooks/useIncidents'
 import CreateIncidentForm from './components/CreateIncidentForm'
 
 import EmptyState from '@/components/feedback/EmptyState'
 import ErrorState from '@/components/feedback/ErrorState'
 import LoadingState from '@/components/feedback/LoadingState'
 
-import { createIncident, getIncidents, type CreateIncidentRequest } from './api/incidentsApi'
-import IncidentCard from './components/IncidentCard'
+// import IncidentCard from './components/IncidentCard'
 import IncidentFilters from './components/IncidentFilters'
 import type { Severity } from './types/incident'
 import { useDebounce } from '@/hooks/useDebounce'
+import type { CreateIncidentRequest } from './api/incidentsApi'
+import IncidentList from './components/IncidentList'
 
 function IncidentsPage() {
-  const queryClient = useQueryClient()
 
   const searchInputRef = useRef<HTMLInputElement>(null)
 
   const [search, setSearch] = useState('')
   const [severity, setSeverity] = useState<Severity>('all')
 
-  const debouncedSearch = useDebounce(search, 400)
+  const debouncedSearch = useDebounce(search, 500)
 
-  const {
-    data: incidents,
-    isPending,
-    isFetching,
-    isError,
-    error,
-    refetch,
-  } = useQuery({
-    queryKey: ['incidents', { search: debouncedSearch, severity }],
-    queryFn: () =>
-      getIncidents({
-        search: debouncedSearch,
-        severity,
-      }),
-    retry: false,
-    refetchOnWindowFocus: false,
-    staleTime: 30_000,
-  })
+ const {
+  data: incidents,
+  isPending,
+  isFetching,
+  isError,
+  error,
+  refetch,
+} = useIncidents({
+  search: debouncedSearch,
+  severity,
+})
 
-  const createIncidentMutation = useMutation({
-    mutationFn: createIncident,
-
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: ['incidents'],
-      })
-    },
-  })
+ const createIncidentMutation = useCreateIncident()
 
   if (isPending) {
     return <LoadingState />
@@ -101,11 +88,7 @@ function IncidentsPage() {
         {isFetching && <span className="ml-2">Updating...12354</span>}
       </p>
 
-      <section aria-label="Filtered incidents" className="grid gap-4 md:grid-cols-2">
-        {incidents.map((incident) => (
-          <IncidentCard key={incident.id} incident={incident} />
-        ))}
-      </section>
+     <IncidentList incidents={incidents}></IncidentList>
     </main>
   )
 }
